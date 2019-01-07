@@ -9,8 +9,6 @@ import {
 
 const session = `e2e-${uuid().substr(0, 8)}`;
 const store = {};
-const scm_url = 'https://github.com/ansible/ansible-tower-samples';
-const scm_type = 'git';
 
 const getOrCreate = (endpoint, data, unique = ['name']) => {
     const identifiers = Object.keys(data).filter(key => unique.indexOf(key) > -1);
@@ -175,7 +173,13 @@ const getNotificationTemplate = (namespace = session) => getOrganization(namespa
         }
     }));
 
-const getProject = (scm_url, scm_type, namespace = session) => getOrganization(namespace)
+/* Creates a project if one doesn't already exist with the same name.
+ * SCM URL must be a valid URL or an exception will be thrown.
+ * */
+const getProject = (
+    namespace = session,
+    scm_url = 'https://github.com/ansible/ansible-tower-samples',
+    scm_type = 'git') => getOrganization(namespace)
     .then( organization => getOrCreate(`/organizations/${organization.id}/projects/`, {
         name: `${namespace}-project`,
         description: namespace,
@@ -220,7 +224,7 @@ const getUpdatedProject = (namespace = session) => getProject(namespace)
         return project;
     });
 
-const getJobTemplate = (namespace = session, playbook = 'hello_world.yml') => {
+const getJobTemplate = (namespace = session, playbook = 'debug20.yml') => {
     const promises = [
         getInventory(namespace),
         getAdminMachineCredential(namespace),
@@ -234,7 +238,7 @@ const getJobTemplate = (namespace = session, playbook = 'hello_world.yml') => {
             inventory: inventory.id,
             credential: credential.id,
             project: project.id,
-            playbook: playbook,
+            playbook: `${playbook}`,
         }));
 };
 
