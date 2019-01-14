@@ -224,7 +224,17 @@ const getUpdatedProject = (namespace = session) => getProject(namespace)
         return project;
     });
 
-const getJobTemplate = (namespace = session, playbook = 'debug20.yml') => {
+/**
+ * Creates a job template through the API.
+ *
+ * @param {string} [namespace=session] - Name prefix for associated dependencies.
+ * @param {string} [playbook=hello_world.yml] - Playbook for the job template.
+ * @param {string} [name=`${namespace}-job-template`] - Unique name prefix for the job template.
+ * */
+const getJobTemplate = (
+    namespace=session,
+    playbook='hello_world.yml',
+    name=`${namespace}-job-template`) => {
     const promises = [
         getInventory(namespace),
         getAdminMachineCredential(namespace),
@@ -233,7 +243,7 @@ const getJobTemplate = (namespace = session, playbook = 'debug20.yml') => {
 
     return Promise.all(promises)
         .then(([inventory, credential, project]) => getOrCreate('/job_templates/', {
-            name: `${namespace}-job-template`,
+            name: `${name}`,
             description: namespace,
             inventory: inventory.id,
             credential: credential.id,
@@ -242,7 +252,15 @@ const getJobTemplate = (namespace = session, playbook = 'debug20.yml') => {
         }));
 };
 
-const getJob = (namespace = session) => getJobTemplate(namespace)
+/**
+ * Gets and launches a job template, and waits for it to complete.
+ *
+ * @param [job=session] - The exact name of the job template to launch. Defaults to the session namespace.
+ */
+const getJob = (
+    namespace = session,
+    playbook='hello_world.yml',
+    name=`${namespace}-job-template`) => getJobTemplate(namespace, playbook, name)
     .then(template => {
         const launchURL = template.related.launch;
         return post(launchURL, {}).then(response => {
@@ -303,21 +321,11 @@ const getAuditor = (namespace = session) => getOrganization(namespace)
         password: AWX_E2E_PASSWORD
     }, ['username']));
 
-const getUser = (namespace = session) => getOrganization(namespace)
+const getUser = (
+    namespace = session,
+    username =`user-${uuid().substr(0, 8)}`) => getOrganization(namespace)
     .then(organization => getOrCreate(`/organizations/${organization.id}/users/`, {
-        username: `user-${uuid().substr(0, 8)}`,
-        organization: organization.id,
-        first_name: 'firstname',
-        last_name: 'lastname',
-        email: 'null@ansible.com',
-        is_superuser: false,
-        is_system_auditor: false,
-        password: AWX_E2E_PASSWORD
-    }, ['username']));
-
-const getUserExact = (namespace = session, name) => getOrganization(namespace)
-    .then(organization => getOrCreate(`/organizations/${organization.id}/users/`, {
-        username: `${name}`,
+        username: `${username}`,
         organization: organization.id,
         first_name: 'firstname',
         last_name: 'lastname',
@@ -410,6 +418,5 @@ module.exports = {
     getTeam,
     getUpdatedProject,
     getUser,
-    getUserExact,
     getWorkflowTemplate,
 };
