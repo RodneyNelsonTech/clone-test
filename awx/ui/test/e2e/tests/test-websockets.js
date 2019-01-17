@@ -1,5 +1,6 @@
 import {
     getInventorySource,
+    getJobTemplate,
     getProject,
     getWorkflowTemplate,
     getJob
@@ -38,43 +39,31 @@ module.exports = {
             .waitForAngular()
             .resizeWindow(1200, 1000);
     },
-
-    'Verify that job progress updates correctly for a normal job on the dashboard.': client => {
-
+    'Test job template status updates for a successful job on dashboard': client => {
         client.useXpath().findThenClick(dashboard);
-        getJob('test-websockets', 'debug.yml'); // launches job
-
+        getJob('test-websockets'); // Automatically starts job
         client.expect.element(spinny).to.not.be.visible.before(5000);
         client.expect.element(sparklineIcon + '[1]' + running)
             .to.be.visible.before(5000);
         client.expect.element(spinny).to.not.be.visible.before(5000);
-
         // wait for the test job to complete. element goes stale if a timeout is used
-        client.pause(10000);
+        client.pause(20000);
         client.expect.element(sparklineIcon + '[1]' + success)
             .to.have.attribute('class').which.does.not.contain('ng-hide').after(5000);
-
     },
-
-    'Verify that job progress updates correctly for a failed job on the dashboard.': client => {
-
-        getJob('test-websockets', 'fail_unless.yml', 'test-websockets-fail');
-
+    'Test job template status updates for a failed job on dashboard': client => {
+        client.useXpath().findThenClick(dashboard);
+        getJob('test-websockets'); // Automatically starts job
         client.expect.element(spinny).to.not.be.visible.before(5000);
         client.expect.element(sparklineIcon + '[1]' + running)
             .to.be.visible.before(5000);
         client.expect.element(spinny).to.not.be.visible.before(5000);
-
         // wait for the test job to complete. element goes stale if a timeout is used
-        client.pause(10000);
-        client.expect.element(sparklineIcon + '[1]' + failed)
+        client.pause(20000);
+        client.expect.element(sparklineIcon + '[1]' + success)
             .to.have.attribute('class').which.does.not.contain('ng-hide').after(5000);
-
     },
-
     after: client => {
-
         client.end();
-
     }
 };

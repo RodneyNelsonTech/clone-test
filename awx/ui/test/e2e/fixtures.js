@@ -9,6 +9,8 @@ import {
 
 const session = `e2e-${uuid().substr(0, 8)}`;
 const store = {};
+const scm_url = 'https://github.com/ansible/ansible-tower-samples';
+const scm_type = 'git';
 
 const getOrCreate = (endpoint, data, unique = ['name']) => {
     const identifiers = Object.keys(data).filter(key => unique.indexOf(key) > -1);
